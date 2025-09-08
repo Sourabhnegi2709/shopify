@@ -22,7 +22,7 @@ const connectDb = async () => {
 
 // ✅ Middleware
 app.use(cors({
-    origin: "https://68be8e65c8221d6158f1e307--sourabhshop.netlify.app/", // replace with your frontend URL
+    origin: "https://68be8e65c8221d6158f1e307--sourabhshop.netlify.app", // replace with your frontend URL
     credentials: true, // if you want to send cookies/auth headers
 }));
 app.use(express.json());
