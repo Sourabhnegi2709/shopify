@@ -10,10 +10,12 @@ export default function Products() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [headingIndex, setHeadingIndex] = useState(0);
+    const [speed, setSpeed] = useState(20); // Adjust speed here
     const navigate = useNavigate();
     const { handleAddToCart } = useContext(CartContext);
     const tickerRef = useRef(null);
     const headingRef = useRef(null);
+    const animationRef = useRef(null);
 
     const trendingTopics = ["Electronics", "Shoes", "Speakers", "Outfits", "Groceries", "Accessories"];
 
@@ -39,25 +41,38 @@ export default function Products() {
         fetchProducts();
     }, []);
 
-    // GSAP ticker animation
+    // GSAP ticker animation with pause on hover
     useEffect(() => {
         if (!tickerRef.current) return;
-        const ctx = gsap.context(() => {
-            gsap.to(tickerRef.current, {
-                x: "-50%",
-                duration: 20,
-                repeat: -1,
-                ease: "linear"
-            });
-        }, tickerRef);
+        const el = tickerRef.current;
+        const contentWidth = el.scrollWidth / 2;
 
-        return () => ctx.revert();
-    }, []);
+        gsap.set(el, { x: 0 });
+
+        animationRef.current = gsap.to(el, {
+            x: -contentWidth,
+            duration: speed,
+            repeat: -1,
+            ease: "linear"
+        });
+
+        // Pause animation on hover
+        const handleMouseEnter = () => animationRef.current.pause();
+        const handleMouseLeave = () => animationRef.current.play();
+
+        el.addEventListener("mouseenter", handleMouseEnter);
+        el.addEventListener("mouseleave", handleMouseLeave);
+
+        return () => {
+            animationRef.current.kill();
+            el.removeEventListener("mouseenter", handleMouseEnter);
+            el.removeEventListener("mouseleave", handleMouseLeave);
+        };
+    }, [speed]);
 
     // Change heading every 3 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-            // Animate fade out and in
             if (headingRef.current) {
                 gsap.to(headingRef.current, {
                     opacity: 0,
@@ -96,7 +111,7 @@ export default function Products() {
 
             {/* Scrolling Ticker */}
             <div className="bg-black text-white py-2 overflow-hidden relative">
-                <div ref={tickerRef} className="flex whitespace-nowrap space-x-12">
+                <div ref={tickerRef} className="flex whitespace-nowrap space-x-12 cursor-pointer">
                     {trendingTopics.concat(trendingTopics).map((topic, index) => (
                         <span key={index} className="text-lg font-semibold">
                             {topic}
@@ -116,7 +131,6 @@ export default function Products() {
                         {trendingTopics[headingIndex]}
                     </span>
                 </h2>
-
             </div>
 
             {/* Product Grid */}
