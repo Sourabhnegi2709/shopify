@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import cors from "cors"; // ✅ Import cors
+import cors from "cors";
 import userRoute from "./route/user.js";
 import itemRoute from "./route/Items.js";
 import cartRoute from "./route/cart.js";
@@ -21,7 +21,10 @@ const connectDb = async () => {
 };
 
 // ✅ Middleware
-app.use(cors()); // ✅ Enable CORS for all origins
+app.use(cors({
+    origin: "https://68be8e65c8221d6158f1e307--sourabhshop.netlify.app/", // replace with your frontend URL
+    credentials: true, // if you want to send cookies/auth headers
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
