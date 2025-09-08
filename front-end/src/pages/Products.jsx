@@ -1,27 +1,32 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import bag from "../assets/bag.mp4";
+import { gsap } from "gsap";
 
 export default function Products() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [headingIndex, setHeadingIndex] = useState(0);
     const navigate = useNavigate();
     const { handleAddToCart } = useContext(CartContext);
+    const tickerRef = useRef(null);
+    const headingRef = useRef(null);
+
+    const trendingTopics = ["Electronics", "Shoes", "Speakers", "Outfits", "Groceries", "Accessories"];
 
     const handleProductClick = (id) => {
         navigate(`/product/${id}`);
     };
 
+    // Fetch products
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const response = await fetch("https://shopify-f91m.onrender.com/api/items");
-                if (!response.ok) {
-                    throw new Error("Failed to fetch products");
-                }
+                if (!response.ok) throw new Error("Failed to fetch products");
                 const data = await response.json();
                 setProducts(data);
                 setLoading(false);
@@ -32,6 +37,39 @@ export default function Products() {
             }
         };
         fetchProducts();
+    }, []);
+
+    // GSAP ticker animation
+    useEffect(() => {
+        if (!tickerRef.current) return;
+        const ctx = gsap.context(() => {
+            gsap.to(tickerRef.current, {
+                x: "-50%",
+                duration: 20,
+                repeat: -1,
+                ease: "linear"
+            });
+        }, tickerRef);
+
+        return () => ctx.revert();
+    }, []);
+
+    // Change heading every 3 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // Animate fade out and in
+            if (headingRef.current) {
+                gsap.to(headingRef.current, {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: () => {
+                        setHeadingIndex((prev) => (prev + 1) % trendingTopics.length);
+                        gsap.to(headingRef.current, { opacity: 1, duration: 0.5 });
+                    }
+                });
+            }
+        }, 3000);
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) {
@@ -45,7 +83,7 @@ export default function Products() {
     return (
         <div className="pt-20 bg-gray-50 min-h-screen">
             {/* Video Header */}
-            <div className="relative w-full h-64 md:h-96 overflow-hidden rounded-lg shadow-lg mx-auto max-w-7xl mb-8">
+            <div className="relative w-full h-64 md:h-96 overflow-hidden rounded-lg shadow-lg mx-auto max-w-7xl mb-4">
                 <video
                     className="w-full h-full object-cover"
                     src={bag}
@@ -54,14 +92,35 @@ export default function Products() {
                     muted
                     playsInline
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <h1 className="text-white text-3xl md:text-5xl font-bold animate-bounce">Explore Our Exclusive Products</h1>
+            </div>
+
+            {/* Scrolling Ticker */}
+            <div className="bg-black text-white py-2 overflow-hidden relative">
+                <div ref={tickerRef} className="flex whitespace-nowrap space-x-12">
+                    {trendingTopics.concat(trendingTopics).map((topic, index) => (
+                        <span key={index} className="text-lg font-semibold">
+                            {topic}
+                        </span>
+                    ))}
                 </div>
             </div>
 
-            {/* Product Grid */}
-            <div className="px-4 max-w-7xl mx-auto">
+            {/* Dynamic Heading */}
+            <div className="text-center my-6">
+                <h2
+                    ref={headingRef}
+                    className="text-2xl md:text-4xl font-bold text-gray-800 transition-opacity duration-500"
+                >
+                    Trending -{" "}
+                    <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+                        {trendingTopics[headingIndex]}
+                    </span>
+                </h2>
 
+            </div>
+
+            {/* Product Grid */}
+            <div className="px-4 max-w-7xl mx-auto mb-8">
                 <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {products.map((product) => (
                         <div
@@ -82,7 +141,6 @@ export default function Products() {
                                     <p className="text-gray-600 mt-2">₹{product.price}</p>
                                 </div>
                             </div>
-
                             <button
                                 onClick={() => handleAddToCart(product)}
                                 className="w-full bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
