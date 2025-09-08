@@ -14,7 +14,7 @@ const ProductDetail = () => {
 
     // Fetch product details from backend
     useEffect(() => {
-        fetch(`http://localhost:5000/api/items/${id}`)
+        fetch(`https://shopify-f91m.onrender.com/api/items/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error("Failed to fetch product");
                 return res.json();

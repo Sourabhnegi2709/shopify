@@ -23,7 +23,7 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const url = isSignup ? "http://localhost:5000/api/user/signup" : "http://localhost:5000/api/user/login";
+            const url = isSignup ? "https://shopify-f91m.onrender.com/api/user/signup" : "https://shopify-f91m.onrender.com/api/user/login";
 
             const response = await fetch(url, {
                 method: "POST",

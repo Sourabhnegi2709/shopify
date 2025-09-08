@@ -18,7 +18,7 @@ export default function Products() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/items");
+                const response = await fetch("https://shopify-f91m.onrender.com/api/items");
                 if (!response.ok) {
                     throw new Error("Failed to fetch products");
                 }

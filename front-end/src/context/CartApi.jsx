@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/cart";
+const API_URL = "https://shopify-f91m.onrender.com/api/cart";
 
 // ✅ Get Cart
 export const getCart = async (token) => {
