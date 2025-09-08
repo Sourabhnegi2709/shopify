@@ -10,10 +10,10 @@ export default function Products() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [headingIndex, setHeadingIndex] = useState(0);
-    const [speed, setSpeed] = useState(20); // Adjust speed here
     const navigate = useNavigate();
     const { handleAddToCart } = useContext(CartContext);
     const tickerRef = useRef(null);
+    const tickerContainerRef = useRef(null);
     const headingRef = useRef(null);
     const animationRef = useRef(null);
 
@@ -41,34 +41,58 @@ export default function Products() {
         fetchProducts();
     }, []);
 
-    // GSAP ticker animation with pause on hover
+    // GSAP ticker animation - responsive version
     useEffect(() => {
-        if (!tickerRef.current) return;
-        const el = tickerRef.current;
-        const contentWidth = el.scrollWidth / 2;
+        const setupTicker = () => {
+            if (!tickerRef.current || !tickerContainerRef.current) return;
 
-        gsap.set(el, { x: 0 });
+            const container = tickerContainerRef.current;
+            const content = tickerRef.current;
 
-        animationRef.current = gsap.to(el, {
-            x: -contentWidth,
-            duration: speed,
-            repeat: -1,
-            ease: "linear"
-        });
+            // Clear any previous animation
+            if (animationRef.current) {
+                animationRef.current.kill();
+            }
 
-        // Pause animation on hover
-        const handleMouseEnter = () => animationRef.current.pause();
-        const handleMouseLeave = () => animationRef.current.play();
+            // Reset position
+            gsap.set(content, { x: 0 });
 
-        el.addEventListener("mouseenter", handleMouseEnter);
-        el.addEventListener("mouseleave", handleMouseLeave);
+            const containerWidth = container.offsetWidth;
+            const contentWidth = content.scrollWidth / 2; // because we duplicate
+
+            // If content is smaller than container, duplicate more
+            let times = 2;
+            if (contentWidth < containerWidth) {
+                times = Math.ceil((containerWidth * 2) / content.scrollWidth);
+            }
+
+            // Duplicate content dynamically
+            content.innerHTML = "";
+            const repeatedTopics = Array(times).fill(trendingTopics).flat();
+            repeatedTopics.forEach((topic, index) => {
+                const span = document.createElement("span");
+                span.textContent = topic;
+                span.className = "mx-8 text-lg font-semibold inline-block";
+                content.appendChild(span);
+            });
+
+            // Animate
+            animationRef.current = gsap.to(content, {
+                x: -content.scrollWidth / 2,
+                duration: 20,
+                repeat: -1,
+                ease: "linear"
+            });
+        };
+
+        setupTicker();
+        window.addEventListener("resize", setupTicker);
 
         return () => {
-            animationRef.current.kill();
-            el.removeEventListener("mouseenter", handleMouseEnter);
-            el.removeEventListener("mouseleave", handleMouseLeave);
+            if (animationRef.current) animationRef.current.kill();
+            window.removeEventListener("resize", setupTicker);
         };
-    }, [speed]);
+    }, []);
 
     // Change heading every 3 seconds
     useEffect(() => {
@@ -110,14 +134,8 @@ export default function Products() {
             </div>
 
             {/* Scrolling Ticker */}
-            <div className="bg-black text-white py-2 overflow-hidden relative">
-                <div ref={tickerRef} className="flex whitespace-nowrap space-x-12 cursor-pointer">
-                    {trendingTopics.concat(trendingTopics).map((topic, index) => (
-                        <span key={index} className="text-lg font-semibold">
-                            {topic}
-                        </span>
-                    ))}
-                </div>
+            <div ref={tickerContainerRef} className="bg-black text-white py-2 overflow-hidden relative">
+                <div ref={tickerRef} className="flex whitespace-nowrap"></div>
             </div>
 
             {/* Dynamic Heading */}
